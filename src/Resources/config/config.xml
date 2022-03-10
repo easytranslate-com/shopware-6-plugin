@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/master/src/Core/System/SystemConfig/Schema/config.xsd">
+    <card>
+        <title>EasyTranslate settings</title>
+        <title lang="de-DE">EasyTranslate Einstellungen</title>
+        <title lang="da-DK">EasyTranslate Indstillinger</title>
+
+        <input-field type="text">
+            <name>clientId</name>
+            <label>Client ID</label>
+            <label lang="de-DE">Kunden ID</label>
+            <label lang="da-DK">Kunde ID</label>
+        </input-field>
+
+        <input-field type="password">
+            <name>clientSecret</name>
+            <label>Client Secret</label>
+            <label lang="de-DE">Kundegeheimnis</label>
+            <label lang="da-DK">Brugerhemmelighed</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>username</name>
+            <label>Username</label>
+            <label lang="de-DE">Nutzername</label>
+            <label lang="da-DK">Brugernavn</label>
+        </input-field>
+
+        <input-field type="password">
+            <name>password</name>
+            <label>Password</label>
+            <label lang="de-DE">Passwort</label>
+            <label lang="da-DK">Kodeord</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>teamIdentifier</name>
+            <disabled>true</disabled>
+            <copyable>true</copyable>
+            <label>Team Identifier</label>
+            <label lang="de-DE">Teamkennung</label>
+            <label lang="da-DK">Team ID</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>accessToken</name>
+            <disabled>true</disabled>
+            <copyable>true</copyable>
+            <label>Access Token</label>
+            <label lang="de-DE">Zugangstoken</label>
+            <label lang="da-DK">Access Token</label>
+        </input-field>
+
+        <input-field type="text">
+            <name>refreshToken</name>
+            <disabled>true</disabled>
+            <copyable>true</copyable>
+            <label>Refresh Token</label>
+            <label lang="de-DE">Aktualisierentoken</label>
+            <label lang="da-DK">Refresh Token</label>
+        </input-field>
+
+        <input-field type="url">
+            <name>apiUri</name>
+            <label>API URI</label>
+            <defaultValue>https://api.platform.sandbox.easytranslate.com/</defaultValue>
+            <label lang="de-DE">API URI</label>
+            <label lang="da-DK">API URI</label>
+        </input-field>
+    </card>
+</config>

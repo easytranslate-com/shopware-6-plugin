@@ -1,0 +1,70 @@
+{
+    "easytranslate-project": {
+        "workflow": {
+            "translation": "Übersetzung",
+            "selfAndMachineTranslation": "Übersetzen Sie selbst + maschinelle Übersetzung",
+            "translationAndReview": "Übersetzung + überprüfen"
+        },
+        "menu": {
+            "title": "EasyTranslate Connect",
+            "descriptionTextModule": "EasyTranslate Connect Beschreibung"
+        },
+        "list": {
+            "columnName": "Name",
+            "columnTranslationPrice": "Übersetzungspreis (EUR)",
+            "columnSourceLanguage": "Ausgangssprache",
+            "columnTargetLanguages": "Zielsprache",
+            "columnStatus": "Status",
+            "textProject": "EasyTranslate-Projekte",
+            "buttonAddProject": "Projekt erstellen"
+        },
+        "detail": {
+            "notification": {
+                "noCategoriesAndProductsSaveError": "Projekt ohne Kategorien oder Produkte kann nicht gespeichert werden",
+                "saveError": "Beim Speichern des Projekts ist ein Fehler aufgetreten",
+                "sendProjectError": "Beim Senden des Projekts an EasyTranslate ist ein Fehler aufgetreten",
+                "sendProjectSuccess": "Projekt erfolgreich an EasyTranslate gesendet",
+                "sendPriceError": "Beim Senden der Preisantwort an EasyTranslate ist ein Fehler aufgetreten",
+                "sendPriceSuccess": "Preisantwort erfolgreich an EasyTranslate gesendet"
+            },
+            "actions": {
+                "decline": "Preis ablehnen",
+                "accept": "Preis akzeptieren",
+                "send": "Projekt an EasyTranslate senden"
+            },
+            "header": {
+                "titleEdit": "Erstellen Sie ein neues EasyTranslate-Projekt"
+            },
+            "base":{
+                "general": {
+                    "cardTitle": "Allgemeine Information",
+                    "statusLabel": "Projekt-Status",
+                    "translationPriceLabel": "Übersetzungspreis (EUR)",
+                    "nameLabel": "Projektname",
+                    "workflowLabel": "Workflow-Typ",
+                    "workflowPlaceholder": "Wählen Sie einen Workflow-Typ aus",
+                    "sourceLanguageLabel": "Ausgangssprache für die Übersetzung",
+                    "targetLanguagesLabel": "Zielsprachen für die Übersetzung"
+                },
+                "categories": {
+                    "cardTitle": "Kategoriezuordnung",
+                    "columnName": "Kategoriename",
+                    "columnType": "Kategorietyp",
+                    "columnTargetLanguages": "Bereits EasyTranslated in",
+                    "categoryAssignmentLabel": "Kategorien",
+                    "categoryPlaceholderLabel": "Kategorien suchen und zuweisen"
+                },
+                "products": {
+                    "cardTitle": "Produktzuordnung",
+                    "columnName": "Produktname",
+                    "columnProductNumber": "Produktnummer",
+                    "columnPrice": "Produktpreis",
+                    "columnTargetLanguages": "Bereits EasyTranslated in",
+                    "productAssignmentLabel": "Produkte",
+                    "productPlaceholderLabel": "Produkte suchen und zuordnen"
+                }
+            }
+        }
+    }
+}
+

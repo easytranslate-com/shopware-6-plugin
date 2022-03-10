@@ -1,0 +1,47 @@
+{
+    "name": "wexo/easytranslate",
+    "description": "EasyTranslate Shopware 6 Integration plugin",
+    "type": "shopware-platform-plugin",
+    "license": "proprietary",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "WEXO A/S",
+            "homepage": "https://www.wexo.dk/"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Wexo\\EasyTranslate\\": "src/"
+        }
+    },
+    "require": {
+        "shopware/core": "~6.4.0",
+        "ext-json": "*"
+    },
+    "extra": {
+        "shopware-plugin-class": "Wexo\\EasyTranslate\\WexoEasyTranslate",
+        "plugin-icon": "src/Resources/config/plugin.png",
+        "copyright": "(c) by WEXO A/S",
+        "label": {
+            "da-DK": "EasyTranslate Connect",
+            "en-GB": "EasyTranslate Connect",
+            "de-DE": "EasyTranslate Connect"
+        },
+        "description": {
+            "da-DK": "Oversæt dit indhold uden at forlade Shopware og tag fordel af vores mange funktioner som Automation Flows, String Library, Roller og Tilladelser og mange flere!",
+            "en-GB": "Localise your content without leaving Shopware and benefit from our many features including Automation Flows, String Library, Roles and Permissions, and many more!",
+            "de-DE": "Lokalisieren Sie Inhalte ohne auf Shopware zu verzichten und profitieren Sie von vielfältigen Features: Automatisierungsflows, String Library, festgelegten Befugnissen und vielem mehr!"
+        },
+        "manufacturerLink": {
+            "dk-DK": "https://www.wexo.dk",
+            "en-GB": "https://www.wexo.dk",
+            "de-DE": "https://www.wexo.dk"
+        },
+        "supportLink": {
+            "da-DK": "https://www.wexo.dk/shopware-support",
+            "en-GB": "https://www.wexo.dk/shopware-support",
+            "de-DE": "https://www.wexo.dk/shopware-support"
+        }
+    }
+}

@@ -1,0 +1,69 @@
+{
+    "easytranslate-project": {
+        "workflow": {
+            "translation": "Translation",
+            "selfAndMachineTranslation": "Translate Yourself + Machine Translation",
+            "translationAndReview": "Translation + Review"
+        },
+        "menu": {
+            "title": "EasyTranslate Connect",
+            "descriptionTextModule": "EasyTranslate Connect description"
+        },
+        "list": {
+            "columnName": "Name",
+            "columnTranslationPrice": "Translation Price (EUR)",
+            "columnSourceLanguage": "Source Language",
+            "columnTargetLanguages": "Target Languages",
+            "columnStatus": "Status",
+            "textProject": "EasyTranslate Projects",
+            "buttonAddProject": "Create project"
+        },
+        "detail": {
+            "notification": {
+                "noCategoriesAndProductsSaveError": "Can't save project with no categories or products",
+                "saveError": "Error occurred when saving project",
+                "sendProjectError": "Error occurred when sending project to EasyTranslate",
+                "sendProjectSuccess": "Successfully sent project to EasyTranslate",
+                "sendPriceError": "Error occurred when sending price response to EasyTranslate",
+                "sendPriceSuccess": "Successfully sent price response to EasyTranslate"
+            },
+            "actions": {
+                "decline": "Decline price",
+                "accept": "Accept price",
+                "send": "Send project to EasyTranslate"
+            },
+            "header": {
+                "titleEdit": "Create new EasyTranslate project"
+            },
+            "base":{
+                "general": {
+                    "cardTitle": "General information",
+                    "statusLabel": "Project status",
+                    "translationPriceLabel": "Translation price (EUR)",
+                    "nameLabel": "Project name",
+                    "workflowLabel": "Workflow type",
+                    "workflowPlaceholder": "Choose a workflow type",
+                    "sourceLanguageLabel": "Source language for translation",
+                    "targetLanguagesLabel": "Target languages for translation"
+                },
+                "categories": {
+                    "cardTitle": "Category assignment",
+                    "columnName": "Category name",
+                    "columnType": "Category type",
+                    "columnTargetLanguages": "Already EasyTranslated in",
+                    "categoryAssignmentLabel": "Categories",
+                    "categoryPlaceholderLabel": "Search and assign categories"
+                },
+                "products": {
+                    "cardTitle": "Product assignment",
+                    "columnName": "Product name",
+                    "columnProductNumber": "Product number",
+                    "columnPrice": "Product price",
+                    "columnTargetLanguages": "Already EasyTranslated in",
+                    "productAssignmentLabel": "Products",
+                    "productPlaceholderLabel": "Search and assign products"
+                }
+            }
+        }
+    }
+}

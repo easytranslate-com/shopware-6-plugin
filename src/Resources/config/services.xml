@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateProject\EasyTranslateProjectDefinition">
+            <tag name="shopware.entity.definition" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateTask\EasyTranslateTaskDefinition">
+            <tag name="shopware.entity.definition" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateProject\Aggregate\EasyTranslateProjectCategoriesDefinition">
+            <tag name="shopware.entity.definition" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateProject\Aggregate\EasyTranslateProjectProductsDefinition">
+            <tag name="shopware.entity.definition" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateProject\Aggregate\EasyTranslateProjectTargetLanguageDefinition">
+            <tag name="shopware.entity.definition" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\Category\CategoryExtension">
+            <tag name="shopware.entity.extension" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\Language\LanguageExtension">
+            <tag name="shopware.entity.extension" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Core\Content\Product\ProductExtension">
+            <tag name="shopware.entity.extension" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Controller\EasyTranslateProjectAPIController" public="true">
+            <argument type="service" id="easytranslate_project.repository" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\APIHelperService" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\TranslationHelperService" />
+
+            <call method="setContainer">
+                <argument type="service" id="service_container" />
+            </call>
+        </service>
+
+        <service id="Wexo\EasyTranslate\Controller\EasyTranslateProjectStorefrontController" public="true">
+            <argument type="service" id="easytranslate_project.repository" />
+            <argument type="service" id="easytranslate_task.repository" />
+            <argument type="service" id="category_translation.repository" />
+            <argument type="service" id="product_translation.repository" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\APIHelperService" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\TranslationHelperService" />
+            <argument type="service" id="log_entry.repository" />
+
+            <call method="setContainer">
+                <argument type="service" id="service_container" />
+            </call>
+        </service>
+
+        <service id="Wexo\EasyTranslate\Service\APIHelperService">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
+            <argument type="service" id="log_entry.repository" />
+        </service>
+
+        <service id="Wexo\EasyTranslate\Service\TranslationHelperService">
+        </service>
+
+        <service id="Wexo\EasyTranslate\Subscriber\SystemConfigSubscriber">
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
+</container>

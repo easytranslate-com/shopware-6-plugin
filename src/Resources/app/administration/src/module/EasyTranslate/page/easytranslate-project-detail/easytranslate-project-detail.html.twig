@@ -1,0 +1,256 @@
+{% block easytranslate_project_detail %}
+    <sw-page class="easytranslate-project-detail">
+
+        {% block easytranslate_project_detail_header %}
+            <template slot="smart-bar-header">
+                {% block easytranslate_project_detail_header_text %}
+                    <h2>{{ placeholder(project, 'name', $tc('easytranslate-project.detail.header.titleEdit')) }}</h2>
+                {% endblock %}
+            </template>
+        {% endblock %}
+
+        {% block easytranslate_project_detail_actions %}
+            <template slot="smart-bar-actions">
+
+                {% block easytranslate_project_detail_actions_abort %}
+                    <sw-button
+                        v-tooltip.bottom="tooltipCancel"
+                        class="easytranslate-project-detail__cancel-action"
+                        :disabled="project !== null && project.isLoading"
+                        @click="onCancel"
+                    >
+                        {{ $tc('global.default.cancel') }}
+                    </sw-button>
+                {% endblock %}
+
+                {% block easytranslate_project_detail_actions_decline %}
+                    <sw-button-process
+                        v-if="!isLoading && !project.isNew() && showPriceActions"
+                        v-model="isSendPriceSuccessful"
+                        class="easytranslate-project-detail__send-action"
+                        variant="primary"
+                        :is-loading="isLoading"
+                        :disabled="isLoading"
+                        :process-success="isSendPriceSuccessful"
+                        @process-finish="sendPriceFinish"
+                        @click.prevent="onDeclinePrice"
+                    >
+                        {{ $tc('easytranslate-project.detail.actions.decline') }}
+                    </sw-button-process>
+                {% endblock %}
+
+                {% block easytranslate_project_detail_actions_accept %}
+                    <sw-button-process
+                        v-if="!isLoading && !project.isNew() && showPriceActions"
+                        v-model="isSendPriceSuccessful"
+                        class="easytranslate-project-detail__send-action"
+                        variant="primary"
+                        :is-loading="isLoading"
+                        :disabled="isLoading"
+                        :process-success="isSendPriceSuccessful"
+                        @process-finish="sendPriceFinish"
+                        @click.prevent="onAcceptPrice"
+                    >
+                        {{ $tc('easytranslate-project.detail.actions.accept') }}
+                    </sw-button-process>
+                {% endblock %}
+
+                {% block easytranslate_project_detail_actions_send %}
+                    <sw-button-process
+                        v-if="!isLoading && !project.isNew() && showSendAction"
+                        v-model="isSendSuccessful"
+                        class="easytranslate-project-detail__send-action"
+                        variant="primary"
+                        :is-loading="isLoading"
+                        :disabled="isLoading"
+                        :process-success="isSendSuccessful"
+                        @process-finish="sendFinish"
+                        @click.prevent="onSend"
+                    >
+                        {{ $tc('easytranslate-project.detail.actions.send') }}
+                    </sw-button-process>
+                {% endblock %}
+
+                {% block easytranslate_project_detail_actions_save %}
+                    <sw-button-process
+                        v-if="!isLoading && project.isNew()"
+                        v-model="isSaveSuccessful"
+                        v-tooltip.bottom="tooltipSave"
+                        class="easytranslate-project-detail__save-action"
+                        variant="primary"
+                        :is-loading="isLoading"
+                        :disabled="isLoading || !project.isNew()"
+                        :process-success="isSaveSuccessful"
+                        @process-finish="saveFinish"
+                        @click.prevent="onSave"
+                    >
+                        {{ $tc('global.default.save') }}
+                    </sw-button-process>
+                {% endblock %}
+
+            </template>
+        {% endblock %}
+
+        {% block easytranslate_project_detail_content %}
+            <template slot="content">
+                <sw-card-view v-if="project" :is-loading="isLoading">
+                    {% block easytranslate_project_detail_content_view %}
+                        {% block easytranslate_project_detail_content_view_base %}
+                            <div class="easytranslate-project-detail-base">
+
+                                {% block easytranslate_project_detail_content_view_base_general_card %}
+                                    <sw-card
+                                        class="easytranslate-project-detail-base__card-general"
+                                        :title="$tc('easytranslate-project.detail.base.general.cardTitle')"
+                                        :is-loading="isLoading"
+                                    >
+                                        {% block easytranslate_project_detail_content_view_base_general_status %}
+                                            <sw-text-field
+                                                v-if="!project.isNew()"
+                                                v-model="project.status"
+                                                class="easytranslate-project-detail-base__field-status"
+                                                :label="$tc('easytranslate-project.detail.base.general.statusLabel')"
+                                                :disabled="!project.isNew()"
+                                            />
+                                        {% endblock %}
+
+                                        {% block easytranslate_project_detail_content_view_base_general_translation_price %}
+                                            <sw-text-field
+                                                v-if="!project.isNew() && project.translationPrice"
+                                                v-model="project.translationPrice"
+                                                class="easytranslate-project-detail-base__field-status"
+                                                :label="$tc('easytranslate-project.detail.base.general.translationPriceLabel')"
+                                                :disabled="!project.isNew()"
+                                            />
+                                        {% endblock %}
+
+                                        {% block easytranslate_project_detail_content_view_base_general_name %}
+                                            <sw-text-field
+                                                v-model="project.name"
+                                                class="easytranslate-project-detail-base__field-name"
+                                                required
+                                                :label="$tc('easytranslate-project.detail.base.general.nameLabel')"
+                                                :disabled="!project.isNew()"
+                                            />
+                                        {% endblock %}
+
+                                        {% block easytranslate_project_detail_content_view_base_general_workflow %}
+                                            <sw-select-field
+                                                v-model="project.workflow"
+                                                required
+                                                :label="$tc('easytranslate-project.detail.base.general.workflowLabel')"
+                                                :placeholder="$tc('easytranslate-project.detail.base.general.workflowPlaceholder')"
+                                                :disabled="!project.isNew()"
+                                            >
+                                                <option value="9e3dd557-ffb3-4a27-b398-27236c66f784">
+                                                    {{ $tc('easytranslate-project.workflow.translation') }}
+                                                </option>
+                                                <option value="e629c3a4-c160-4f7e-9262-aeee8749f814">
+                                                    {{ $tc('easytranslate-project.workflow.selfAndMachineTranslation') }}
+                                                </option>
+                                                <option value="534f120d-d467-4aba-beb6-6ad4b027b53c">
+                                                    {{ $tc('easytranslate-project.workflow.translationAndReview') }}
+                                                </option>
+                                            </sw-select-field>
+                                        {% endblock %}
+
+                                        {% block easytranslate_project_detail_content_view_base_general_source_language %}
+                                            <sw-entity-single-select
+                                                v-model="project.sourceLanguageId"
+                                                class="easytranslate-project-detail__select-source-language"
+                                                required
+                                                show-clearable-button
+                                                :label="$tc('easytranslate-project.detail.base.general.sourceLanguageLabel')"
+                                                entity="language"
+                                                :disabled="!project.isNew()"
+                                            />
+                                        {% endblock %}
+
+                                        {% block easytranslate_project_detail_content_view_base_general_target_languages %}
+                                            <sw-entity-multi-select
+                                                v-model="project.targetLanguages"
+                                                class="easytranslate-project-detail__select-target-languages"
+                                                required
+                                                :label="$tc('easytranslate-project.detail.base.general.targetLanguagesLabel')"
+                                                entity="language"
+                                                :entity-collection="project.targetLanguages"
+                                                :criteria="targetLanguagesCriteria"
+                                                :disabled="!project.isNew() || !project.sourceLanguageId"
+                                            />
+                                        {% endblock %}
+                                    </sw-card>
+                                {% endblock %}
+
+                                {% block easytranslate_project_detail_content_view_base_categories_card %}
+                                    <sw-many-to-many-assignment-card
+                                        v-if="project.isNew() || project.categories.length > 0"
+                                        class="easytranslate-project-detail-base__card-categories"
+                                        :title="$tc('easytranslate-project.detail.base.categories.cardTitle')"
+                                        :entity-collection="project.categories"
+                                        :criteria="categoryAndProductCriteria"
+                                        :columns="categoryColumns"
+                                        :is-loading="isLoading"
+                                        :disabled="!project.isNew() || !project.sourceLanguageId || project.targetLanguages.length == 0"
+                                        :local-mode="project.isNew()"
+                                        :select-label="$tc('easytranslate-project.detail.base.categories.categoryAssignmentLabel')"
+                                        :placeholder="$tc('easytranslate-project.detail.base.categories.categoryPlaceholderLabel')"
+                                    >
+                                        {% block easytranslate_project_detail_content_view_base_categories_card_list_target_languages %}
+                                            <template #column-easyTranslateProjects.targetLanguages="{ item }">
+                                                <template
+                                                    v-if="item.extensions.easyTranslateProjects"
+                                                    v-for="project in item.extensions.easyTranslateProjects"
+                                                >
+                                                    <sw-label
+                                                        v-for="language in project.targetLanguages"
+                                                        appearance="pill"
+                                                    >
+                                                        {{ language.name }}
+                                                    </sw-label>
+                                                </template>
+                                            </template>
+                                        {% endblock %}
+                                    </sw-many-to-many-assignment-card>
+                                {% endblock %}
+
+                                {% block easytranslate_project_detail_content_view_base_products_card %}
+                                    <sw-many-to-many-assignment-card
+                                        v-if="project.isNew() || project.products.length > 0"
+                                        class="easytranslate-project-detail-base__card-products"
+                                        :title="$tc('easytranslate-project.detail.base.products.cardTitle')"
+                                        :entity-collection="project.products"
+                                        :criteria="categoryAndProductCriteria"
+                                        :columns="productColumns"
+                                        :is-loading="isLoading"
+                                        :disabled="!project.isNew() || !project.sourceLanguageId || project.targetLanguages.length == 0"
+                                        :local-mode="project.isNew()"
+                                        :select-label="$tc('easytranslate-project.detail.base.products.productAssignmentLabel')"
+                                        :placeholder="$tc('easytranslate-project.detail.base.products.productPlaceholderLabel')"
+                                    >
+                                        {% block easytranslate_project_detail_content_view_base_products_card_list_target_languages %}
+                                            <template #column-easyTranslateProjects.targetLanguages="{ item }">
+                                                <template
+                                                    v-if="item.extensions.easyTranslateProjects"
+                                                    v-for="project in item.extensions.easyTranslateProjects"
+                                                >
+                                                    <sw-label
+                                                        v-for="language in project.targetLanguages"
+                                                        appearance="pill"
+                                                    >
+                                                        {{ language.name }}
+                                                    </sw-label>
+                                                </template>
+                                            </template>
+                                        {% endblock %}
+                                    </sw-many-to-many-assignment-card>
+                                {% endblock %}
+                            </div>
+                        {% endblock %}
+
+                    {% endblock %}
+                </sw-card-view>
+            </template>
+        {% endblock %}
+
+    </sw-page>
+{% endblock %}

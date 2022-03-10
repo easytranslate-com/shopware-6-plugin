@@ -1,0 +1,69 @@
+{% block easytranslate_project_list %}
+    <sw-page class="easytranslate-project-list">
+        {% block easytranslate_project_list_smart_bar_heaer %}
+            <template slot="smart-bar-header">
+                {% block easytranslate_project_list_smart_bar_header_title %}
+                    <h2>
+                        {% block easytranslate_project_list_smart_bar_header_title_text %}
+                            {{ $tc('easytranslate-project.list.textProject') }}
+                        {% endblock %}
+
+                        {% block easytranslate_project_list_smart_bar_header_title_amount %}
+                            <span v-if="!isLoading" class="sw-page__smart-bar-amount">
+                                ({{ total }})
+                            </span>
+                        {% endblock %}
+                    </h2>
+                {% endblock %}
+            </template>
+        {% endblock %}
+
+        {% block easytranslate_project_list_actions %}
+            <template slot="smart-bar-actions">
+                {% block easytranslate_project_list_actions_add_button %}
+                    <sw-button :routerLink="{ name: 'easytranslate.project.create' }" variant="primary">
+                        {{ $tc('easytranslate-project.list.buttonAddProject') }}
+                    </sw-button>
+                {% endblock %}
+            </template>
+        {% endblock %}
+
+        {% block easytranslate_project_list_content %}
+            <template slot="content">
+                <div class="easytranslate-project-list__content">
+                    {% block easytranslate_project_list_content_grid %}
+                        <sw-entity-listing
+                            ref="easyTranslateProjectList"
+                            identifier="easytranslate-project-list"
+                            :items="projects"
+                            :columns="projectColumns"
+                            :repository="projectRepository"
+                            :sortBy="sortBy"
+                            :sortDirection="sortDirection"
+                            :isLoading="isLoading"
+                        >
+                            {% block easytranslate_project_list_content_grid_source_language %}
+                                <template #column-sourceLanguage.name="{ item }">
+                                    <sw-label appearance="pill">
+                                        {{ item.sourceLanguage.name }}
+                                    </sw-label>
+                                </template>
+                            {% endblock %}
+
+                            {% block easytranslate_project_list_content_grid_target_languages %}
+                                <template #column-targetLanguages="{ item }">
+                                    <sw-label
+                                        v-for="language in item.targetLanguages"
+                                        appearance="pill"
+                                    >
+                                        {{ language.name }}
+                                    </sw-label>
+                                </template>
+                            {% endblock %}
+                        </sw-entity-listing>
+                    {% endblock %}
+                </div>
+            </template>
+        {% endblock %}
+    </sw-page>
+{% endblock %}

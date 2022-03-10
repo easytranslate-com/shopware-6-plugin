@@ -1,0 +1,69 @@
+{
+    "easytranslate-project": {
+        "workflow": {
+            "translation": "Oversættelse",
+            "selfAndMachineTranslation": "Oversæt selv + maskinoversættelse",
+            "translationAndReview": "Oversæt + gennemgå"
+        },
+        "menu": {
+            "title": "EasyTranslate Connect",
+            "descriptionTextModule": "EasyTranslate Connect beskrivelse"
+        },
+        "list": {
+            "columnName": "Navn",
+            "columnTranslationPrice": "Oversættelsespris (EUR)",
+            "columnSourceLanguage": "Kildesprog",
+            "columnTargetLanguages": "Målsprog",
+            "columnStatus": "Status",
+            "textProject": "EasyTranslate Projekter",
+            "buttonAddProject": "Opret projekt"
+        },
+        "detail": {
+            "notification": {
+                "noCategoriesAndProductsSaveError": "Kan ikke oprette projekt uden kategorier eller produkter",
+                "saveError": "Fejl opstod under oprettelse af projekt",
+                "sendProjectError": "Fejl opstod, da projektet blev sendt til EasyTranslate",
+                "sendProjectSuccess": "Projekt blev sendt til EasyTranslate",
+                "sendPriceError": "Fejl opstod, da prissvaret blev sendt til EasyTranslate",
+                "sendPriceSuccess": "Prissvar blev sendt til EasyTranslate"
+            },
+            "actions": {
+                "decline": "Afvis pris",
+                "accept": "Accepter pris",
+                "send": "Send projekt til EasyTranslate"
+            },
+            "header": {
+                "titleEdit": "Opret nyt EasyTranslate projekt"
+            },
+            "base":{
+                "general": {
+                    "cardTitle": "Generel information",
+                    "statusLabel": "Projekt status",
+                    "translationPriceLabel": "Oversættelsespris (EUR)",
+                    "nameLabel": "Projekt navn",
+                    "workflowLabel": "Oversættelsestype",
+                    "workflowPlaceholder": "Vælg oversættelsestype",
+                    "sourceLanguageLabel": "Kildesprog for oversættelse",
+                    "targetLanguagesLabel": "Målsprog for oversættelse"
+                },
+                "categories": {
+                    "cardTitle": "Kategorivalg",
+                    "columnName": "Kategorinavn",
+                    "columnType": "Kategoritype",
+                    "columnTargetLanguages": "Allerede EasyTranslated i",
+                    "categoryAssignmentLabel": "Kategorier",
+                    "categoryPlaceholderLabel": "Søg og vælg kategorier"
+                },
+                "products": {
+                    "cardTitle": "Produktvalg",
+                    "columnName": "Produktnavn",
+                    "columnProductNumber": "Produktnummer",
+                    "columnPrice": "Produktpris",
+                    "columnTargetLanguages": "Allerede EasyTranslated i",
+                    "productAssignmentLabel": "Produkter",
+                    "productPlaceholderLabel": "Søg og vælg produkter"
+                }
+            }
+        }
+    }
+}
