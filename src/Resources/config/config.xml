@@ -64,9 +64,14 @@
         <input-field type="url">
             <name>apiUri</name>
             <label>API URI</label>
-            <defaultValue>https://api.platform.sandbox.easytranslate.com/</defaultValue>
+            <defaultValue>https://api.platform.easytranslate.com/</defaultValue>
             <label lang="de-DE">API URI</label>
             <label lang="da-DK">API URI</label>
         </input-field>
+
+        <component name="easytranslate-api-test-button">
+            <name>easyTranslateApiTest</name>
+            <btnLabel>Test API Connection</btnLabel>
+        </component>
     </card>
 </config>

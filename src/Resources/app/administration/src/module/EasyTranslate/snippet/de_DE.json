@@ -1,4 +1,9 @@
 {
+    "easytraslate-api-test-button": {
+        "title": "API Test",
+        "success": "Verbindung wurde erfolgreich getestet",
+        "error": "Verbindung konnte nicht hergestellt werden. Bitte prüfe die Zugangsdaten"
+    },
     "easytranslate-project": {
         "workflow": {
             "translation": "Übersetzung",
@@ -22,6 +27,7 @@
             "notification": {
                 "noCategoriesAndProductsSaveError": "Projekt ohne Kategorien oder Produkte kann nicht gespeichert werden",
                 "saveError": "Beim Speichern des Projekts ist ein Fehler aufgetreten",
+                "noContentError": "Für die ausgewählten Kategorien und Produkte wurden keine Inhalte in der ausgewählten Ausgangssprache gefunden. Bitte stellen Sie sicher, dass weder Name, Beschreibung noch Layout leer sind oder von einer anderen Sprache erben",
                 "sendProjectError": "Beim Senden des Projekts an EasyTranslate ist ein Fehler aufgetreten",
                 "sendProjectSuccess": "Projekt erfolgreich an EasyTranslate gesendet",
                 "sendPriceError": "Beim Senden der Preisantwort an EasyTranslate ist ein Fehler aufgetreten",
@@ -35,7 +41,7 @@
             "header": {
                 "titleEdit": "Erstellen Sie ein neues EasyTranslate-Projekt"
             },
-            "base":{
+            "base": {
                 "general": {
                     "cardTitle": "Allgemeine Information",
                     "statusLabel": "Projekt-Status",
@@ -47,6 +53,7 @@
                     "targetLanguagesLabel": "Zielsprachen für die Übersetzung"
                 },
                 "categories": {
+                    "helpText": "Hinweis: Als Ergebnisse werden nur Kategorien angezeigt, die noch nicht mit EasyTranslated in die ausgewählten Zielsprachen übersetzt wurden",
                     "cardTitle": "Kategoriezuordnung",
                     "columnName": "Kategoriename",
                     "columnType": "Kategorietyp",
@@ -55,6 +62,7 @@
                     "categoryPlaceholderLabel": "Kategorien suchen und zuweisen"
                 },
                 "products": {
+                    "helpText": "Hinweis: Als Ergebnisse werden nur Produkte angezeigt, die die gewählte Ausgangssprache verwenden und noch nicht von EasyTranslated in die gewählte Zielsprache übersetzt wurden",
                     "cardTitle": "Produktzuordnung",
                     "columnName": "Produktname",
                     "columnProductNumber": "Produktnummer",

@@ -3,7 +3,7 @@
     "description": "EasyTranslate Shopware 6 Integration plugin",
     "type": "shopware-platform-plugin",
     "license": "proprietary",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "authors": [
         {
             "name": "WEXO A/S",
@@ -16,6 +16,7 @@
         }
     },
     "require": {
+        "php": "^7.4 || ^8.0",
         "shopware/core": "~6.4.0",
         "ext-json": "*"
     },

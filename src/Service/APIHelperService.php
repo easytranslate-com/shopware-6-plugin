@@ -6,7 +6,6 @@ use Closure;
 use GuzzleHttp\Exception\GuzzleException;
 use Shopware\Core\Framework\Context;
 use GuzzleHttp\Client;
-use Monolog\Logger;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Throwable;
@@ -26,18 +25,17 @@ class APIHelperService
     private string $teamIdentifier;
 
     private SystemConfigService $systemConfigService;
-    private EntityRepositoryInterface $logEntryRepository;
+    private LogService $logService;
 
     /**
      * @param SystemConfigService $systemConfigService
-     * @param EntityRepositoryInterface $logEntryRepository
+     * @param LogService $logService
      * @throws GuzzleException
-     * @throws Exception
      */
-    public function __construct(SystemConfigService $systemConfigService, EntityRepositoryInterface $logEntryRepository)
+    public function __construct(SystemConfigService $systemConfigService, LogService $logService)
     {
         $this->systemConfigService = $systemConfigService;
-        $this->logEntryRepository = $logEntryRepository;
+        $this->logService = $logService;
 
         $this->client = new Client();
 
@@ -81,74 +79,41 @@ class APIHelperService
     /**
      * Get new access token from EasyTranslate and sets it in the plugin config.
      *
+     * @param array $config
      * @return void
-     * @throws GuzzleException
-     * @throws Exception
+     * @throws Exception|GuzzleException
      */
-    public function getNewAccessToken(): void
+    public function getNewAccessToken(array $config = []): void
     {
-        $clientID = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
-        if (!$clientID) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing client ID in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
-            throw new Exception('Missing client ID in config');
-        }
+        if (!empty($config)) {
+            $clientID = $config['clientID'];
+            $clientSecret = $config['clientSecret'];
+            $username = $config['username'];
+            $password = $config['password'];
+        } else {
+            $clientID = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
+            if (!$clientID) {
+                $this->logService->logError('Missing client ID in config');
+                throw new Exception('Missing client ID in config');
+            }
 
-        $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
-        if (!$clientSecret) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing client secret in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
-            throw new Exception('Missing client secret in config');
-        }
+            $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
+            if (!$clientSecret) {
+                $this->logService->logError('Missing client secret in config');
+                throw new Exception('Missing client secret in config');
+            }
 
-        $username = $this->systemConfigService->get(self::CONFIG_PREFIX . 'username');
-        if (!$username) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing username in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
-            throw new Exception('Missing username in config');
-        }
+            $username = $this->systemConfigService->get(self::CONFIG_PREFIX . 'username');
+            if (!$username) {
+                $this->logService->logError('Missing username in config');
+                throw new Exception('Missing username in config');
+            }
 
-        $password = $this->systemConfigService->get(self::CONFIG_PREFIX . 'password');
-        if (!$password) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing password in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
-            throw new Exception('Missing password in config');
+            $password = $this->systemConfigService->get(self::CONFIG_PREFIX . 'password');
+            if (!$password) {
+                $this->logService->logError('Missing password in config');
+                throw new Exception('Missing password in config');
+            }
         }
 
         // Get access token from EasyTranslate
@@ -178,19 +143,12 @@ class APIHelperService
             // Set access token on helper and update config
             $this->setAccessAndRefreshToken($accessToken, $refreshToken);
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to get new access token',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to get new access token',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }
@@ -217,33 +175,13 @@ class APIHelperService
 
         $clientID = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
         if (!$clientID) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing client ID in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
+            $this->logService->logError('Missing client ID in config');
             throw new Exception('Missing client ID in config');
         }
 
         $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
         if (!$clientSecret) {
-            $this->logEntryRepository->create(
-                [
-                    [
-                        'message'   => 'EasyTranslate: Missing client secret in config',
-                        'context'   => [], // TODO: Maybe add a context
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
-            );
+            $this->logService->logError('Missing client secret in config');
             throw new Exception('Missing client secret in config');
         }
 
@@ -273,19 +211,12 @@ class APIHelperService
             // Set access token on helper and update config
             $this->setAccessAndRefreshToken($accessToken, $refreshToken);
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to refresh access token',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to refresh access token',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             // Refresh token might be wrong, try to get
             // new access in the original way
@@ -360,19 +291,12 @@ class APIHelperService
                 $this->systemConfigService->set(self::CONFIG_PREFIX . 'teamIdentifier', $this->teamIdentifier);
             });
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to get team identifier',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to get team identifier',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }
@@ -404,19 +328,48 @@ class APIHelperService
                 return json_decode($response->getBody()->getContents(), true);
             });
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to get API settings from EasyTranslate',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to get API settings from EasyTranslate',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
+            );
+            throw $e;
+        }
+    }
+
+    /**
+     * Get and return team details for the authenticated user
+     *
+     * @return array
+     * @throws GuzzleException
+     * @throws Throwable
+     */
+    public function getTeamDetails(): array
+    {
+        $uri = $this->apiUri . "api/v2/teams/" . $this->teamIdentifier;
+
+        try {
+            return $this->retryOnceWrapper(function () use ($uri) {
+                $options = [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Accept' => 'application/json',
+                    ],
+                ];
+
+                $response = $this->client->request('GET', $uri, $options);
+
+                return json_decode($response->getBody()->getContents(), true);
+            });
+        } catch (Exception $e) {
+            $this->logService->logError(
+                'Unable to get team details from EasyTranslate',
+                [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }
@@ -449,19 +402,12 @@ class APIHelperService
                 return json_decode($response->getBody()->getContents(), true);
             });
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to create new project at EasyTranslate',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to create new project at EasyTranslate',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }
@@ -502,19 +448,12 @@ class APIHelperService
                 return json_decode($response->getBody()->getContents(), true);
             });
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to handle price approval',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to handle price approval',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }
@@ -544,19 +483,12 @@ class APIHelperService
                 return json_decode($response->getBody()->getContents(), true);
             });
         } catch (Exception $e) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Unable to download task content from EasyTranslate',
                 [
-                    [
-                        'message'   => 'EasyTranslate: Unable to download task content from EasyTranslate',
-                        'context'   => [
-                            'error' => $e->getMessage(),
-                            'trace' => $e->getTrace(), // TODO: Maybe add more to context?
-                        ],
-                        'level'     => Logger::ERROR,
-                        'channel'   => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             throw $e;
         }

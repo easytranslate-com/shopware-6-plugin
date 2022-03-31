@@ -22,7 +22,6 @@ class WexoEasyTranslate extends Plugin
     const EVENT_PROJECT_STATUS_DECLINED = 'project.status.price_declined';
 
     const PROJECT_STATUS_INIT = 'INIT';
-    const PROJECT_STATUS_CREATED = 'CREATED';
     const PROJECT_STATUS_APPROVAL_NEEDED = 'APPROVAL_NEEDED';
     const PROJECT_STATUS_APPROVED = 'APPROVED';
     const PROJECT_STATUS_DECLINED = 'DECLINED';
@@ -39,17 +38,11 @@ class WexoEasyTranslate extends Plugin
         /** @var Connection $connection */
         $connection = $this->container->get(Connection::class);
 
+        $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_task`');
+
         $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_project_product`');
         $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_project_category`');
         $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_project_target_language`');
         $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_project`');
-
-        $connection->executeStatement('DROP TABLE IF EXISTS `easytranslate_task`');
-
-        // TODO: Figure out if already completed translations should be removed from categories and products
-
-        // TODO: Figure out if language, category and product extensions should be handled
-
-        // TODO: Figure out if snippets should be removed
     }
 }

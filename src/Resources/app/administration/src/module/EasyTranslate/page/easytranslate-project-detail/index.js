@@ -1,7 +1,9 @@
 import template from './easytranslate-project-detail.html.twig';
 
 const { Component, Context } = Shopware;
+const { mapPropertyErrors } = Shopware.Component.getComponentHelper();
 const { Criteria } = Shopware.Data;
+const ShopwareError = Shopware.Classes.ShopwareError;
 
 Component.register('easytranslate-project-detail', {
     template,
@@ -41,6 +43,11 @@ Component.register('easytranslate-project-detail', {
         return {
             isLoading: false,
             project: null,
+            workflowOptions: [],
+            nameIsEmpty: false,
+            workflowIsEmpty: false,
+            sourceLanguageIsEmpty: false,
+            targetLanguagesIsEmpty: false,
             isSaveSuccessful: false,
             isSendSuccessful: false,
             isSendPriceSuccessful: false,
@@ -54,6 +61,49 @@ Component.register('easytranslate-project-detail', {
     },
 
     computed: {
+        ...mapPropertyErrors('project', [
+            'name',
+            'workflow',
+        ]),
+
+        // Needed for check that happens same time as source and target check
+        nameError() {
+            if (this.nameIsEmpty) {
+                return new ShopwareError({
+                    code: 'c1051bb4-d103-4f74-8988-acbcafc7fdc3',
+                });
+            }
+            return null;
+        },
+
+        // Needed for check that happens same time as source and target check
+        workflowError() {
+            if (this.workflowIsEmpty) {
+                return new ShopwareError({
+                    code: 'c1051bb4-d103-4f74-8988-acbcafc7fdc3',
+                });
+            }
+            return null;
+        },
+
+        sourceLanguageError() {
+            if (this.sourceLanguageIsEmpty) {
+                return new ShopwareError({
+                    code: 'c1051bb4-d103-4f74-8988-acbcafc7fdc3',
+                });
+            }
+            return null;
+        },
+
+        targetLanguagesError() {
+            if (this.targetLanguagesIsEmpty) {
+                return new ShopwareError({
+                    code: 'c1051bb4-d103-4f74-8988-acbcafc7fdc3',
+                });
+            }
+            return null;
+        },
+
         identifier() {
             return this.placeholder(this.project, 'name');
         },
@@ -78,7 +128,7 @@ Component.register('easytranslate-project-detail', {
             return criteria;
         },
 
-        // TODO: Figure out if locale translation could be shown instead of original language name
+        // TODO: Future improvement. Figure out if locale translation could be shown instead of original language name
         targetLanguagesCriteria() {
             const criteria = new Criteria();
 
@@ -87,10 +137,9 @@ Component.register('easytranslate-project-detail', {
             return criteria;
         },
 
-        categoryAndProductCriteria() {
+        categoryCriteria() {
             const criteria = new Criteria();
 
-            // TODO: If existing project, exclude target languages, where the project doesn't match source language
             criteria
                 .addAssociation('easyTranslateProjects.targetLanguages');
 
@@ -102,11 +151,37 @@ Component.register('easytranslate-project-detail', {
                 .addAssociation('translations')
                 .addFilter(Criteria.equals('translations.languageId', this.project.sourceLanguageId));
 
-            if (this.project.targetLanguages.getIds().length > 0) {
-                criteria.addFilter(Criteria.not('AND', [
-                    Criteria.equalsAny('easyTranslateProjects.targetLanguages.id', this.project.targetLanguages.getIds())
-                ]));
+            criteria.addFilter(Criteria.not('AND', [
+                Criteria.equalsAny('easyTranslateProjects.targetLanguages.id', this.project.targetLanguages.getIds())
+            ]));
+
+            return criteria;
+        },
+
+        productCriteria() {
+            const criteria = new Criteria();
+
+            criteria
+                .addAssociation('easyTranslateProjects.targetLanguages');
+
+            if (this.projectId) {
+                return criteria;
             }
+
+            criteria.addFilter(Criteria.equals('parentId', null));
+
+            criteria
+                .addAssociation('translations')
+                .addFilter(Criteria.equals('translations.languageId', this.project.sourceLanguageId))
+                .addFilter(Criteria.not('AND', [
+                    Criteria.equals('translations.name', null),
+                    Criteria.equals('translations.description', null),
+                    Criteria.equals('translations.slotConfig', null),
+                ]));
+
+            criteria.addFilter(Criteria.not('AND', [
+                Criteria.equalsAny('easyTranslateProjects.targetLanguages.id', this.project.targetLanguages.getIds())
+            ]));
 
             return criteria;
         },
@@ -114,40 +189,42 @@ Component.register('easytranslate-project-detail', {
         categoryColumns() {
             return [{
                 property: 'name',
-                label: 'easytranslate-project.detail.base.categories.columnName',
+                label: this.$tc('easytranslate-project.detail.base.categories.columnName'),
                 routerLink: 'sw.category.detail',
             }, {
                 property: 'type',
-                label: 'easytranslate-project.detail.base.categories.columnType',
+                label: this.$tc('easytranslate-project.detail.base.categories.columnType'),
             }, {
                 property: 'easyTranslateProjects.targetLanguages',
-                label: 'easytranslate-project.detail.base.categories.columnTargetLanguages',
+                label: this.$tc('easytranslate-project.detail.base.categories.columnTargetLanguages'),
+                sortable: false,
             }];
         },
 
         productColumns() {
             return [{
                 property: 'name',
-                label: 'easytranslate-project.detail.base.products.columnName',
+                label: this.$tc('easytranslate-project.detail.base.products.columnName'),
                 routerLink: 'sw.product.detail',
             }, {
                 property: 'productNumber',
-                label: 'easytranslate-project.detail.base.products.columnProductNumber',
+                label: this.$tc('easytranslate-project.detail.base.products.columnProductNumber'),
             }, {
                 property: 'easyTranslateProjects.targetLanguages',
-                label: 'easytranslate-project.detail.base.products.columnTargetLanguages',
+                label: this.$tc('easytranslate-project.detail.base.products.columnTargetLanguages'),
+                sortable: false,
             }];
         },
 
         showPriceActions() {
             if (this.project) {
-                return this.project.status === 'APPROVAL_NEEDED'; // TODO: Have some kind of constant for this
+                return this.project.status === 'APPROVAL_NEEDED';
             }
         },
 
         showSendAction() {
             if (this.project) {
-                return this.project.status === 'INIT'; // TODO: Have some kind of constant for this
+                return this.project.status === 'INIT';
             }
         },
 
@@ -195,11 +272,17 @@ Component.register('easytranslate-project-detail', {
                 this.project.status = 'INIT';
 
                 this.isLoading = false;
-
-                return;
+            } else {
+                this.loadEntityData();
             }
 
-            this.loadEntityData();
+            this.easyTranslateApiService.getWorkflowOptions()
+                .then((options) => {
+                    this.workflowOptions = options;
+                })
+                .catch((error) => {
+                    this.createNotificationsError(error);
+                })
         },
 
         loadEntityData() {
@@ -228,10 +311,13 @@ Component.register('easytranslate-project-detail', {
                         message: this.$tc('easytranslate-project.detail.notification.sendProjectSuccess'),
                     });
                     this.$router.push({ name: 'easytranslate.project.index' });
-                }).catch(() => {
-                    this.createNotificationError({
-                        message: this.$tc('easytranslate-project.detail.notification.sendProjectError'),
-                    });
+                }).catch((error) => {
+                    let message = this.$tc('easytranslate-project.detail.notification.sendProjectError');
+                    if (error.response?.data?.includes("No content")) {
+                        message = this.$tc('easytranslate-project.detail.notification.noContentError')
+                    }
+                    this.createNotificationError({ message });
+
                     this.isLoading = false;
                 });
             }
@@ -276,13 +362,23 @@ Component.register('easytranslate-project-detail', {
 
         onSave() {
             if (!this.projectId) {
+                this.sourceLanguageIsEmpty = !this.project.sourceLanguageId;
+                this.targetLanguagesIsEmpty = !this.project.targetLanguages || this.project.targetLanguages.length === 0;
+                this.nameIsEmpty = !this.project.name || this.project.name.length === 0;
+                this.workflowIsEmpty = !this.project.workflow || this.project.workflow.length === 0;
+
                 if (this.project.categories.length === 0 && this.project.products.length === 0) {
                     this.createNotificationError({
                         message: this.$tc('easytranslate-project.detail.notification.noCategoriesAndProductsSaveError'),
                     });
                     return;
                 }
-                this.createProject();
+
+                // Necessary as repository.save doesn't give errors when source or target is empty
+                // and we want all errors to be shown at once, if possible.
+                if (!this.nameIsEmpty && !this.workflowIsEmpty && !this.sourceLanguageIsEmpty && !this.targetLanguagesIsEmpty) {
+                    this.createProject();
+                }
             }
         },
 
@@ -296,8 +392,6 @@ Component.register('easytranslate-project-detail', {
         },
 
         saveProject() {
-            this.isLoading = true;
-
             return this.projectRepository.save(this.project)
                 .then(() => {
                     this.isSaveSuccessful = true;
@@ -324,7 +418,7 @@ Component.register('easytranslate-project-detail', {
         },
 
         onCancel() {
-            this.$router.push({ name: 'easytranslate.project.index' });
+            this.$router.push({name: 'easytranslate.project.index'});
         },
     },
 });

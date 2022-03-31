@@ -2,12 +2,15 @@
 
 namespace Wexo\EasyTranslate\Controller;
 
+use Exception;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\Framework\Validation\DataBag\RequestDataBag;
 use Shopware\Core\System\Language\LanguageEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Wexo\EasyTranslate\Core\Content\EasyTranslateProject\EasyTranslateProjectEntity;
@@ -43,6 +46,65 @@ class EasyTranslateProjectAPIController extends AbstractController
         $this->easyTranslateProjectRepository = $easyTranslateProjectRepository;
         $this->APIHelperService = $APIHelperService;
         $this->translationHelperService = $translationHelperService;
+    }
+
+    /**
+     * @Route(
+     *     "/api/_action/easytranslate/verify",
+     *     name="api.action.easytranslate.verify",
+     *     options={"seo"="false"},
+     *     methods={"POST"},
+     * )
+     */
+    public function verifyConfig(RequestDataBag $dataBag): JsonResponse
+    {
+        $clientID = $dataBag->get('WexoEasyTranslate.config.clientId');
+        $clientSecret = $dataBag->get('WexoEasyTranslate.config.clientSecret');
+        $username = $dataBag->get('WexoEasyTranslate.config.username');
+        $password = $dataBag->get('WexoEasyTranslate.config.password');
+
+        if (!$clientID || !$clientSecret || !$username || !$password) {
+            return new JsonResponse(['isValid' => false]);
+        }
+
+        $config = [
+            "clientID" => $clientID,
+            "clientSecret" => $clientSecret,
+            "username" => $username,
+            "password" => $password
+        ];
+
+        // Unfortunately the only way to test the API is to get a new access token
+        try {
+            $this->APIHelperService->getNewAccessToken($config);
+            return new JsonResponse(['isValid' => true]);
+        } catch (Exception $e) {
+            return new JsonResponse(['isValid' => false]);
+        }
+    }
+
+    /**
+     * @Route(
+     *     "/api/_action/easytranslate/workflowOptions",
+     *     name="api.action.easytranslate.workflowOptions",
+     *     options={"seo"="false"},
+     *     methods={"GET"},
+     * )
+     */
+    public function getWorkflowOptions(): JsonResponse
+    {
+        $teamDetails = $this->APIHelperService->getTeamDetails();
+        $workflows = $teamDetails['data']['attributes']['workflows'];
+
+        $options = [];
+        foreach ($workflows as $workflow) {
+            $options[] = [
+                'id' => $workflow['id'],
+                'name' => $workflow['attributes']['display_name']
+            ];
+        }
+
+        return new JsonResponse($options);
     }
 
     /**

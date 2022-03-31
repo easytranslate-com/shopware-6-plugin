@@ -41,25 +41,26 @@ Component.register('easytranslate-project-list', {
         projectColumns() {
             return [{
                 property: 'name',
-                label: 'easytranslate-project.list.columnName',
+                label: this.$tc('easytranslate-project.list.columnName'),
                 routerLink: 'easytranslate.project.detail',
                 allowResize: true,
                 primary: true,
             }, {
                 property: 'translationPrice',
-                label: 'easytranslate-project.list.columnTranslationPrice',
+                label: this.$tc('easytranslate-project.list.columnTranslationPrice'),
                 allowResize: true,
             }, {
                 property: 'sourceLanguage.name',
-                label: 'easytranslate-project.list.columnSourceLanguage',
+                label: this.$tc('easytranslate-project.list.columnSourceLanguage'),
                 allowResize: true,
             }, {
                 property: 'targetLanguages',
-                label: 'easytranslate-project.list.columnTargetLanguages',
+                label: this.$tc('easytranslate-project.list.columnTargetLanguages'),
                 allowResize: true,
+                sortable: false,
             }, {
                 property: 'status',
-                label: 'easytranslate-project.list.columnStatus',
+                label: this.$tc('easytranslate-project.list.columnStatus'),
                 allowResize: true,
             }];
         },

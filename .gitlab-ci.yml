@@ -1,0 +1,57 @@
+image: docker:latest
+
+stages:
+  - syntax
+  - validate-plugin
+  - update-plugin-listing
+  - publish-plugin
+
+before_script:
+  - source ci/prepare
+
+variables:
+  FROSH_UPLOADER_IMAGE: registry.services.wexo.dk:4567/wexo-services/docker-magento:froshpluginuploader-0.3.19
+  ACCOUNT_USER: $SHOPWARE_STORE_USER
+  ACCOUNT_PASSWORD: $SHOPWARE_STORE_PASSWORD
+
+codesniffer:
+  stage: syntax
+  image: registry.services.wexo.dk:4567/wexo-services/docker-magento/shopware-plugins-quality-php:7.4-fpm
+  script:
+    - ~/phpcs.sh
+  allow_failure: false
+
+validate-plugin:
+  stage: validate-plugin
+  image:
+    name: $FROSH_UPLOADER_IMAGE
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - output=`php /app/bin/pluginupload ext:zip --strategy plain . | awk '{print $NF}'`
+    - php /app/bin/pluginupload ext:validate $output
+
+update-plugin-listing:
+  needs: ["validate-plugin"]
+  stage: update-plugin-listing
+  except:
+    - branches
+  image:
+    name: $FROSH_UPLOADER_IMAGE
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - php /app/bin/pluginupload ext:update .
+
+upload-plugin:
+  needs: ["validate-plugin"]
+  stage: publish-plugin
+  only:
+    - tags
+  except:
+    - branches
+  when: manual
+  image:
+    name: $FROSH_UPLOADER_IMAGE
+    entrypoint: ["/bin/sh", "-c"]
+  script:
+    - output=`php /app/bin/pluginupload ext:zip . | awk '{print $NF}'`
+    - php /app/bin/pluginupload ext:upload $output

@@ -15,6 +15,7 @@ use Shopware\Core\Framework\Routing\Annotation\RouteScope;
 use Wexo\EasyTranslate\Core\Content\EasyTranslateProject\EasyTranslateProjectEntity;
 use Wexo\EasyTranslate\Core\Content\EasyTranslateTask\EasyTranslateTaskEntity;
 use Wexo\EasyTranslate\Service\APIHelperService;
+use Wexo\EasyTranslate\Service\LogService;
 use Wexo\EasyTranslate\Service\TranslationHelperService;
 use Wexo\EasyTranslate\WexoEasyTranslate;
 
@@ -33,7 +34,7 @@ class EasyTranslateProjectStorefrontController extends AbstractController
     private EntityRepositoryInterface $productTranslationRepository;
     private APIHelperService $APIHelperService;
     private TranslationHelperService $translationHelperService;
-    private EntityRepositoryInterface $logEntryRepository;
+    private LogService $logService;
 
     /**
      * @param EntityRepositoryInterface $easyTranslateProjectRepository
@@ -42,7 +43,7 @@ class EasyTranslateProjectStorefrontController extends AbstractController
      * @param EntityRepositoryInterface $productTranslationRepository
      * @param APIHelperService $APIHelperService
      * @param TranslationHelperService $translationHelperService
-     * @param EntityRepositoryInterface $logEntryRepository
+     * @param LogService $logService
      */
     public function __construct(
         EntityRepositoryInterface $easyTranslateProjectRepository,
@@ -51,7 +52,7 @@ class EasyTranslateProjectStorefrontController extends AbstractController
         EntityRepositoryInterface $productTranslationRepository,
         APIHelperService $APIHelperService,
         TranslationHelperService $translationHelperService,
-        EntityRepositoryInterface $logEntryRepository
+        LogService $logService
     ) {
         $this->easyTranslateProjectRepository = $easyTranslateProjectRepository;
         $this->easyTranslateTaskRepository = $easyTranslateTaskRepository;
@@ -59,7 +60,7 @@ class EasyTranslateProjectStorefrontController extends AbstractController
         $this->productTranslationRepository = $productTranslationRepository;
         $this->APIHelperService = $APIHelperService;
         $this->translationHelperService = $translationHelperService;
-        $this->logEntryRepository = $logEntryRepository;
+        $this->logService = $logService;
     }
 
     /**
@@ -77,6 +78,13 @@ class EasyTranslateProjectStorefrontController extends AbstractController
     private function handleTaskUpdate(array $data, Request $request): Response
     {
         if ($data['attributes']['status'] !== WexoEasyTranslate::PROJECT_STATUS_COMPLETED) {
+            $this->logService->logError(
+                'Received callback with non-completed task',
+                [
+                    'data'    => $data,
+                    'content' => $request->getContent(),
+                ]
+            );
             return new Response('This API currently only supports COMPLETED task updates', 400);
         }
 
@@ -88,39 +96,25 @@ class EasyTranslateProjectStorefrontController extends AbstractController
         /** @var EasyTranslateTaskEntity $task */
         $task = $this->easyTranslateTaskRepository->search($criteria, Context::createDefaultContext())->first();
         if (!$task) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Received callback for missing task',
                 [
-                    [
-                        'message' => 'EasyTranslate: Received callback for missing task',
-                        'context' => [
-                            'easyTranslateId' => $taskId,
-                            'data'            => $data,
-                            'content'         => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'easyTranslateId' => $taskId,
+                    'data'            => $data,
+                    'content'         => $request->getContent(),
+                ]
             );
             return new Response("Unable to find task with EasyTranslate id `$taskId`", 404);
         }
 
         if ($task->getStatus() === WexoEasyTranslate::PROJECT_STATUS_COMPLETED) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Received callback for already completed task',
                 [
-                    [
-                        'message' => 'EasyTranslate: Received callback for already completed task',
-                        'context' => [
-                            'task'    => $task,
-                            'data'    => $data,
-                            'content' => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'task'    => $task,
+                    'data'    => $data,
+                    'content' => $request->getContent(),
+                ]
             );
             return new Response('Task has already been completed', 400);
         }
@@ -136,43 +130,29 @@ class EasyTranslateProjectStorefrontController extends AbstractController
             ->first();
 
         if (!$project) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Received callback for missing project',
                 [
-                    [
-                        'message' => 'EasyTranslate: Received callback for missing project',
-                        'context' => [
-                            'easyTranslateTaskId'    => $taskId,
-                            'easyTranslateProjectId' => $projectId,
-                            'data'                   => $data,
-                            'content'                => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'easyTranslateTaskId'    => $taskId,
+                    'easyTranslateProjectId' => $projectId,
+                    'data'                   => $data,
+                    'content'                => $request->getContent(),
+                ]
             );
             return new Response("Unable to find project with EasyTranslate id `$projectId`", 404);
         }
 
         if ($project->getId() !== $task->getEasyTranslateProjectId()) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Supplied project id does not match id linked to task in Shopware',
                 [
-                    [
-                        'message' => 'EasyTranslate: Supplied project id does not match id linked to task in Shopware',
-                        'context' => [
-                            'easyTranslateTaskId'    => $taskId,
-                            'easyTranslateProjectId' => $projectId,
-                            'project'                => $project,
-                            'task'                   => $task,
-                            'data'                   => $data,
-                            'content'                => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'easyTranslateTaskId'    => $taskId,
+                    'easyTranslateProjectId' => $projectId,
+                    'project'                => $project,
+                    'task'                   => $task,
+                    'data'                   => $data,
+                    'content'                => $request->getContent(),
+                ]
             );
             return new Response("Supplied project id does not match id linked to task in Shopware", 404);
         }
@@ -196,15 +176,7 @@ class EasyTranslateProjectStorefrontController extends AbstractController
                 $task->getTargetLanguageId()
             );
 
-            // Wrapped in try-catch to work around issue, where cheapest price may be missing
-            // Translations are done correctly anyways
-            try {
-                $this->productTranslationRepository->upsert($productsUpdateArray, Context::createDefaultContext());
-            } catch (\RuntimeException $e) {
-                if (!str_starts_with($e->getMessage(), 'Could not find CheapestPrice')) {
-                    throw $e;
-                }
-            }
+            $this->productTranslationRepository->upsert($productsUpdateArray, Context::createDefaultContext());
         }
 
         $this->easyTranslateTaskRepository->update([
@@ -253,20 +225,13 @@ class EasyTranslateProjectStorefrontController extends AbstractController
             ->first();
 
         if (!$project) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Received callback for missing project',
                 [
-                    [
-                        'message' => 'EasyTranslate: Received callback for missing project',
-                        'context' => [
-                            'easyTranslateId' => $projectId,
-                            'data'            => $data,
-                            'content'         => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'easyTranslateId' => $projectId,
+                    'data'            => $data,
+                    'content'         => $request->getContent(),
+                ]
             );
             return new Response("Unable to find project with EasyTranslate id `$projectId`", 404);
         }
@@ -309,20 +274,13 @@ class EasyTranslateProjectStorefrontController extends AbstractController
             ->first();
 
         if (!$project) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Received callback for missing project',
                 [
-                    [
-                        'message' => 'EasyTranslate: Received callback for missing project',
-                        'context' => [
-                            'easyTranslateId' => $projectId,
-                            'data'            => $data,
-                            'content'         => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'easyTranslateId' => $projectId,
+                    'data'            => $data,
+                    'content'         => $request->getContent(),
+                ]
             );
             return new Response("Unable to find project with EasyTranslate id `$projectId`", 404);
         }
@@ -358,36 +316,22 @@ class EasyTranslateProjectStorefrontController extends AbstractController
     {
         $event = $request->get('event');
         if (!$event) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Missing `event` in callback',
                 [
-                    [
-                        'message' => 'EasyTranslate: Missing `event` in callback',
-                        'context' => [
-                            'content' => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'content' => $request->getContent(),
+                ]
             );
             return new Response('Missing `event` in request', 400);
         }
 
         $data = $request->get('data');
         if (!$data) {
-            $this->logEntryRepository->create(
+            $this->logService->logError(
+                'Missing `data` in callback',
                 [
-                    [
-                        'message' => 'EasyTranslate: Missing `data` in callback',
-                        'context' => [
-                            'content' => $request->getContent(),
-                        ],
-                        'level'   => Logger::ERROR,
-                        'channel' => WexoEasyTranslate::LOG_CHANNEL
-                    ]
-                ],
-                Context::createDefaultContext()
+                    'content' => $request->getContent(),
+                ]
             );
             return new Response('Missing `data` in request', 400);
         }

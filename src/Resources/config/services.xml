@@ -37,6 +37,10 @@
             <tag name="shopware.entity.extension" />
         </service>
 
+        <service id="Wexo\EasyTranslate\Service\LogService">
+            <argument type="string">%kernel.logs_dir%</argument>
+        </service>
+
         <service id="Wexo\EasyTranslate\Controller\EasyTranslateProjectAPIController" public="true">
             <argument type="service" id="easytranslate_project.repository" />
             <argument type="service" id="Wexo\EasyTranslate\Service\APIHelperService" />
@@ -54,7 +58,7 @@
             <argument type="service" id="product_translation.repository" />
             <argument type="service" id="Wexo\EasyTranslate\Service\APIHelperService" />
             <argument type="service" id="Wexo\EasyTranslate\Service\TranslationHelperService" />
-            <argument type="service" id="log_entry.repository" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\LogService" />
 
             <call method="setContainer">
                 <argument type="service" id="service_container" />
@@ -63,7 +67,7 @@
 
         <service id="Wexo\EasyTranslate\Service\APIHelperService">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
-            <argument type="service" id="log_entry.repository" />
+            <argument type="service" id="Wexo\EasyTranslate\Service\LogService" />
         </service>
 
         <service id="Wexo\EasyTranslate\Service\TranslationHelperService">

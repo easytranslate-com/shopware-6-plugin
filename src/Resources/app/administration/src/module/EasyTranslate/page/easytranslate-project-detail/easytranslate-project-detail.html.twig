@@ -131,6 +131,7 @@
                                                 required
                                                 :label="$tc('easytranslate-project.detail.base.general.nameLabel')"
                                                 :disabled="!project.isNew()"
+                                                :error="projectNameError ?? nameError"
                                             />
                                         {% endblock %}
 
@@ -141,16 +142,19 @@
                                                 :label="$tc('easytranslate-project.detail.base.general.workflowLabel')"
                                                 :placeholder="$tc('easytranslate-project.detail.base.general.workflowPlaceholder')"
                                                 :disabled="!project.isNew()"
+                                                :error="projectWorkflowError ?? workflowError"
                                             >
-                                                <option value="9e3dd557-ffb3-4a27-b398-27236c66f784">
-                                                    {{ $tc('easytranslate-project.workflow.translation') }}
-                                                </option>
-                                                <option value="e629c3a4-c160-4f7e-9262-aeee8749f814">
-                                                    {{ $tc('easytranslate-project.workflow.selfAndMachineTranslation') }}
-                                                </option>
-                                                <option value="534f120d-d467-4aba-beb6-6ad4b027b53c">
-                                                    {{ $tc('easytranslate-project.workflow.translationAndReview') }}
-                                                </option>
+                                                <template v-if="workflowOptions && workflowOptions.length">
+                                                    <option
+                                                        v-for="option in workflowOptions"
+                                                        :key="option.id"
+                                                        :value="option.id"
+                                                        :disabled="!project.isNew() || option.disabled"
+                                                        :selected="option.id == project.workflow"
+                                                    >
+                                                        {{ option.name }}
+                                                    </option>
+                                                </template>
                                             </sw-select-field>
                                         {% endblock %}
 
@@ -163,6 +167,7 @@
                                                 :label="$tc('easytranslate-project.detail.base.general.sourceLanguageLabel')"
                                                 entity="language"
                                                 :disabled="!project.isNew()"
+                                                :error="sourceLanguageError"
                                             />
                                         {% endblock %}
 
@@ -176,6 +181,7 @@
                                                 :entity-collection="project.targetLanguages"
                                                 :criteria="targetLanguagesCriteria"
                                                 :disabled="!project.isNew() || !project.sourceLanguageId"
+                                                :error="targetLanguagesError"
                                             />
                                         {% endblock %}
                                     </sw-card>
@@ -187,13 +193,14 @@
                                         class="easytranslate-project-detail-base__card-categories"
                                         :title="$tc('easytranslate-project.detail.base.categories.cardTitle')"
                                         :entity-collection="project.categories"
-                                        :criteria="categoryAndProductCriteria"
+                                        :criteria="categoryCriteria"
                                         :columns="categoryColumns"
                                         :is-loading="isLoading"
                                         :disabled="!project.isNew() || !project.sourceLanguageId || project.targetLanguages.length == 0"
                                         :local-mode="project.isNew()"
                                         :select-label="$tc('easytranslate-project.detail.base.categories.categoryAssignmentLabel')"
                                         :placeholder="$tc('easytranslate-project.detail.base.categories.categoryPlaceholderLabel')"
+                                        :helpText="$tc('easytranslate-project.detail.base.categories.helpText')"
                                     >
                                         {% block easytranslate_project_detail_content_view_base_categories_card_list_target_languages %}
                                             <template #column-easyTranslateProjects.targetLanguages="{ item }">
@@ -219,13 +226,14 @@
                                         class="easytranslate-project-detail-base__card-products"
                                         :title="$tc('easytranslate-project.detail.base.products.cardTitle')"
                                         :entity-collection="project.products"
-                                        :criteria="categoryAndProductCriteria"
+                                        :criteria="productCriteria"
                                         :columns="productColumns"
                                         :is-loading="isLoading"
                                         :disabled="!project.isNew() || !project.sourceLanguageId || project.targetLanguages.length == 0"
                                         :local-mode="project.isNew()"
                                         :select-label="$tc('easytranslate-project.detail.base.products.productAssignmentLabel')"
                                         :placeholder="$tc('easytranslate-project.detail.base.products.productPlaceholderLabel')"
+                                        :helpText="$tc('easytranslate-project.detail.base.products.helpText')"
                                     >
                                         {% block easytranslate_project_detail_content_view_base_products_card_list_target_languages %}
                                             <template #column-easyTranslateProjects.targetLanguages="{ item }">

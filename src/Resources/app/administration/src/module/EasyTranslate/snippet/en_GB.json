@@ -1,4 +1,9 @@
 {
+    "easytranslate-api-test-button": {
+        "title": "API Test",
+        "success": "Connection tested with success",
+        "error": "Connection could not be established. Please check the credentials"
+    },
     "easytranslate-project": {
         "workflow": {
             "translation": "Translation",
@@ -22,6 +27,7 @@
             "notification": {
                 "noCategoriesAndProductsSaveError": "Can't save project with no categories or products",
                 "saveError": "Error occurred when saving project",
+                "noContentError": "No content was found in the selected source language for the picked categories and products. Please ensure that neither name, description or layout is empty, or inheriting from another language",
                 "sendProjectError": "Error occurred when sending project to EasyTranslate",
                 "sendProjectSuccess": "Successfully sent project to EasyTranslate",
                 "sendPriceError": "Error occurred when sending price response to EasyTranslate",
@@ -35,7 +41,7 @@
             "header": {
                 "titleEdit": "Create new EasyTranslate project"
             },
-            "base":{
+            "base": {
                 "general": {
                     "cardTitle": "General information",
                     "statusLabel": "Project status",
@@ -47,6 +53,7 @@
                     "targetLanguagesLabel": "Target languages for translation"
                 },
                 "categories": {
+                    "helpText": "Notice: Only categories not already EasyTranslated to the chosen target languages will be shown as results",
                     "cardTitle": "Category assignment",
                     "columnName": "Category name",
                     "columnType": "Category type",
@@ -55,6 +62,7 @@
                     "categoryPlaceholderLabel": "Search and assign categories"
                 },
                 "products": {
+                    "helpText": "Notice: Only products using the chosen source language and not already EasyTranslated to the chosen target languages will be shown as results",
                     "cardTitle": "Product assignment",
                     "columnName": "Product name",
                     "columnProductNumber": "Product number",

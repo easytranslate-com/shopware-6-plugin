@@ -1,4 +1,9 @@
 {
+    "easytranslate-api-test-button": {
+        "title": "API Test",
+        "success": "Oprettelse af forbindelse testet med success",
+        "error": "Forbindelse kunne ikke oprettes. Tjek konfigurationsdata"
+    },
     "easytranslate-project": {
         "workflow": {
             "translation": "Oversættelse",
@@ -22,6 +27,7 @@
             "notification": {
                 "noCategoriesAndProductsSaveError": "Kan ikke oprette projekt uden kategorier eller produkter",
                 "saveError": "Fejl opstod under oprettelse af projekt",
+                "noContentError": "Fandt ikke noget indhold på det valgte sprog for de valgte kategorier og produkter. Tjek at hverken navn, beskrivelse eller layout er tomt eller arver fra et andet sprog",
                 "sendProjectError": "Fejl opstod, da projektet blev sendt til EasyTranslate",
                 "sendProjectSuccess": "Projekt blev sendt til EasyTranslate",
                 "sendPriceError": "Fejl opstod, da prissvaret blev sendt til EasyTranslate",
@@ -35,7 +41,7 @@
             "header": {
                 "titleEdit": "Opret nyt EasyTranslate projekt"
             },
-            "base":{
+            "base": {
                 "general": {
                     "cardTitle": "Generel information",
                     "statusLabel": "Projekt status",
@@ -47,6 +53,7 @@
                     "targetLanguagesLabel": "Målsprog for oversættelse"
                 },
                 "categories": {
+                    "helpText": "Bemærk: Kun kategorier der ikke allerede er EasyTranslated til de valgte målsprog vil blive vist som resultater",
                     "cardTitle": "Kategorivalg",
                     "columnName": "Kategorinavn",
                     "columnType": "Kategoritype",
@@ -55,6 +62,7 @@
                     "categoryPlaceholderLabel": "Søg og vælg kategorier"
                 },
                 "products": {
+                    "helpText": "Bemærk: Kun produkter der findes på det valgte kildesprog og ikke allerede er EasyTranslated til de valgte målsprog vil blive vist som resultater",
                     "cardTitle": "Produktvalg",
                     "columnName": "Produktnavn",
                     "columnProductNumber": "Produktnummer",
