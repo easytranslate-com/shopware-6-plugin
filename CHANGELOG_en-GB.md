@@ -1,3 +1,7 @@
+# 1.2.4
+
+* Shopware 6.6.* compatibility
+
 # 1.2.3
 
 * Better logic for authorization and JWT tokens, only refresh when invalid and such. Also introduced EasyTranslateClientConfig class to handle all the client config setup.
