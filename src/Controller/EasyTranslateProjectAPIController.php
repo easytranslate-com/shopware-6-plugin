@@ -25,13 +25,13 @@ use Wexo\EasyTranslate\WexoEasyTranslate;
  *
  * @package   Wexo\EasyTranslate\Controller
  *
- * @RouteScope(scopes={"api"})
+ * @Route(defaults={"_routeScope"={"api"}})
  */
 class EasyTranslateProjectAPIController extends AbstractController
 {
-    private EntityRepositoryInterface $easyTranslateProjectRepository;
-    private APIHelperService $APIHelperService;
-    private TranslationHelperService $translationHelperService;
+    protected EntityRepositoryInterface $easyTranslateProjectRepository;
+    protected APIHelperService $APIHelperService;
+    protected TranslationHelperService $translationHelperService;
 
     /**
      * @param EntityRepositoryInterface $easyTranslateProjectRepository

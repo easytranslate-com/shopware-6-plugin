@@ -1,3 +1,15 @@
+# 1.2.3
+
+* Better logic for authorization and JWT tokens, only refresh when invalid and such. Also introduced EasyTranslateClientConfig class to handle all the client config setup.
+
+# 1.2.2
+
+* EasyTranslate is now easier to override
+
+# 1.2.1
+
+* All products on the sales channel are now available for translation
+
 # 1.2.0
 
 * Workflows are now grabbed from the EasyTranslate API, allowing for use of more than the 3 default workflows

@@ -24,7 +24,7 @@ class TranslationHelperService
      * @param string $languageId
      * @return array
      */
-    private function getTranslationSlotContent($entity, $translation, string $languageId): array
+    protected function getTranslationSlotContent($entity, $translation, string $languageId): array
     {
         $slotContent = [];
         if (!empty($translation->getSlotConfig())) {

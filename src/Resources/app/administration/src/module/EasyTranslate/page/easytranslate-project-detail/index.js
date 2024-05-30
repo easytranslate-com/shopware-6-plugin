@@ -161,27 +161,9 @@ Component.register('easytranslate-project-detail', {
         productCriteria() {
             const criteria = new Criteria();
 
-            criteria
-                .addAssociation('easyTranslateProjects.targetLanguages');
-
             if (this.projectId) {
                 return criteria;
             }
-
-            criteria.addFilter(Criteria.equals('parentId', null));
-
-            criteria
-                .addAssociation('translations')
-                .addFilter(Criteria.equals('translations.languageId', this.project.sourceLanguageId))
-                .addFilter(Criteria.not('AND', [
-                    Criteria.equals('translations.name', null),
-                    Criteria.equals('translations.description', null),
-                    Criteria.equals('translations.slotConfig', null),
-                ]));
-
-            criteria.addFilter(Criteria.not('AND', [
-                Criteria.equalsAny('easyTranslateProjects.targetLanguages.id', this.project.targetLanguages.getIds())
-            ]));
 
             return criteria;
         },

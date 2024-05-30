@@ -13,7 +13,7 @@ class EasyTranslateApiService extends ApiService {
             .post(
                 `_action/${this.getApiBasePath()}/verify`,
                 data,
-                headers
+                { headers }
             ).then((response) => {
                 return ApiService.handleResponse(response);
             });
@@ -40,7 +40,7 @@ class EasyTranslateApiService extends ApiService {
             .post(
                 `_action/${this.getApiBasePath()}/project/sendProject`,
                 data,
-                headers
+                { headers }
             ).then((response) => {
                 return ApiService.handleResponse(response);
             });
@@ -52,7 +52,7 @@ class EasyTranslateApiService extends ApiService {
         return this.httpClient.post(
             `_action/${this.getApiBasePath()}/project/handlePrice`,
             data,
-            headers
+            { headers }
         ).then((response) => {
             return ApiService.handleResponse(response);
         });
