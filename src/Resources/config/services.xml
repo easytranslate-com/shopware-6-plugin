@@ -66,12 +66,20 @@
         </service>
 
         <service id="Wexo\EasyTranslate\Service\APIHelperService">
+            <argument type="service" id="Wexo\EasyTranslate\Helpers\JWTHelper" />
+            <argument type="service" id="Wexo\EasyTranslate\Core\Content\EasyTranslateClientConfig" />
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />
             <argument type="service" id="Wexo\EasyTranslate\Service\LogService" />
         </service>
 
         <service id="Wexo\EasyTranslate\Service\TranslationHelperService">
         </service>
+
+        <service id="Wexo\EasyTranslate\Helpers\JWTHelper" />
+
+        <service id="Wexo\EasyTranslate\Core\Content\JWTToken" />
+
+        <service id="Wexo\EasyTranslate\Core\Content\EasyTranslateClientConfig" />
 
         <service id="Wexo\EasyTranslate\Subscriber\SystemConfigSubscriber">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService" />

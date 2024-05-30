@@ -3,13 +3,17 @@
 namespace Wexo\EasyTranslate\Service;
 
 use Closure;
+use DateTime;
 use GuzzleHttp\Exception\GuzzleException;
+use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Context;
 use GuzzleHttp\Client;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepositoryInterface;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Throwable;
 use Exception;
+use Wexo\EasyTranslate\Core\Content\EasyTranslateClientConfig;
+use Wexo\EasyTranslate\Helpers\JWTHelper;
 use Wexo\EasyTranslate\WexoEasyTranslate;
 
 /**
@@ -17,47 +21,42 @@ use Wexo\EasyTranslate\WexoEasyTranslate;
  */
 class APIHelperService
 {
-    private const CONFIG_PREFIX = 'WexoEasyTranslate.config.';
+    protected const CONFIG_PREFIX = 'WexoEasyTranslate.config.';
 
-    private Client $client;
-    private string $apiUri;
-    private string $accessToken;
-    private string $teamIdentifier;
-
-    private SystemConfigService $systemConfigService;
-    private LogService $logService;
+    protected Client $client;
+    protected JWTHelper $jwtHelper;
+    protected EasyTranslateClientConfig $clientConfig;
+    protected SystemConfigService $systemConfigService;
+    protected LogService $logService;
 
     /**
+     * @param JWTHelper $jwtHelper
      * @param SystemConfigService $systemConfigService
      * @param LogService $logService
-     * @throws GuzzleException
      */
-    public function __construct(SystemConfigService $systemConfigService, LogService $logService)
-    {
+    public function __construct(
+        JWTHelper $jwtHelper,
+        EasyTranslateClientConfig $clientConfig,
+        SystemConfigService $systemConfigService,
+        LogService $logService
+    ) {
+        $this->jwtHelper = $jwtHelper;
+        $this->clientConfig = $clientConfig;
         $this->systemConfigService = $systemConfigService;
         $this->logService = $logService;
 
         $this->client = new Client();
 
-        $apiUri = $this->systemConfigService->get(self::CONFIG_PREFIX . 'apiUri');
-        if (!str_ends_with($apiUri, '/')) {
-            $apiUri .= '/';
-        }
-        $this->apiUri = $apiUri;
-
-        // Set access token from config or get new from EasyTranslate
-        $accessToken = $this->systemConfigService->get(self::CONFIG_PREFIX . 'accessToken');
-        if (!$accessToken) {
-            $this->getNewAccessToken();
-        } else {
-            $this->accessToken = $accessToken;
-        }
-
-        $teamIdentifier = $this->systemConfigService->get(self::CONFIG_PREFIX . 'teamIdentifier');
-        if (!$teamIdentifier) {
-            $this->getTeamIdentifier();
-        } else {
-            $this->teamIdentifier = $teamIdentifier;
+        try {
+            $this->ensureClientConfig();
+        } catch (GuzzleException|Throwable $e) {
+            $this->logService->logError(
+                "Error setting up EasyTranslateClient",
+                [
+                    "message" => $e->getMessage(),
+                    "trace" => $e->getTraceAsString()
+                ]
+            );
         }
     }
 
@@ -68,9 +67,10 @@ class APIHelperService
      * @param string $refreshToken
      * @return void
      */
-    private function setAccessAndRefreshToken(string $accessToken, string $refreshToken): void
+    protected function setAccessAndRefreshToken(string $accessToken, string $refreshToken): void
     {
-        $this->accessToken = $accessToken;
+        $this->clientConfig->setAccessToken($accessToken);
+        $this->clientConfig->setRefreshToken($refreshToken);
 
         $this->systemConfigService->set(self::CONFIG_PREFIX . 'accessToken', $accessToken);
         $this->systemConfigService->set(self::CONFIG_PREFIX . 'refreshToken', $refreshToken);
@@ -85,50 +85,19 @@ class APIHelperService
      */
     public function getNewAccessToken(array $config = []): void
     {
-        if (!empty($config)) {
-            $clientID = $config['clientID'];
-            $clientSecret = $config['clientSecret'];
-            $username = $config['username'];
-            $password = $config['password'];
-        } else {
-            $clientID = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
-            if (!$clientID) {
-                $this->logService->logError('Missing client ID in config');
-                throw new Exception('Missing client ID in config');
-            }
-
-            $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
-            if (!$clientSecret) {
-                $this->logService->logError('Missing client secret in config');
-                throw new Exception('Missing client secret in config');
-            }
-
-            $username = $this->systemConfigService->get(self::CONFIG_PREFIX . 'username');
-            if (!$username) {
-                $this->logService->logError('Missing username in config');
-                throw new Exception('Missing username in config');
-            }
-
-            $password = $this->systemConfigService->get(self::CONFIG_PREFIX . 'password');
-            if (!$password) {
-                $this->logService->logError('Missing password in config');
-                throw new Exception('Missing password in config');
-            }
-        }
-
         // Get access token from EasyTranslate
-        $uri = $this->apiUri . 'oauth/token';
+        $uri = $this->clientConfig->getApiUri() . 'oauth/token';
 
         $options = [
             'headers' => [
                 'Accept' => 'application/json',
             ],
             'form_params' => [
-                'client_id' => $clientID,
-                'client_secret' => $clientSecret,
+                'client_id' => $config['clientID'] ?? $this->clientConfig->getClientId(),
+                'client_secret' => $config['clientSecret'] ?? $this->clientConfig->getClientSecret(),
                 'grant_type' => 'password',
-                'username' => $username,
-                'password' => $password,
+                'username' => $config['username'] ?? $this->clientConfig->getUsername(),
+                'password' => $config['password'] ?? $this->clientConfig->getPassword(),
                 'scope' => 'dashboard'
             ]
         ];
@@ -155,6 +124,27 @@ class APIHelperService
     }
 
     /**
+     * Checks JWT token if the token is expired. Requests new if it is.
+     *
+     * @return void
+     * @throws GuzzleException
+     */
+    protected function refreshTokenIfExpired(): void
+    {
+        $expireDate = $this->jwtHelper
+            ->parseJwtToken($this->clientConfig->getAccessToken())
+            ->getExpiresAt()
+            ->format(Defaults::STORAGE_DATE_TIME_FORMAT);
+
+        $currentDate = new DateTime();
+        $currentDate = $currentDate->format(Defaults::STORAGE_DATE_TIME_FORMAT);
+
+        if ($currentDate > $expireDate) {
+            $this->refreshAccessToken();
+        }
+    }
+
+    /**
      * Refresh access token using the refresh token in config.
      *
      * If no refresh token exists, or it ends up in a 401,
@@ -166,37 +156,18 @@ class APIHelperService
      */
     public function refreshAccessToken(): void
     {
-        // Get auth info from config
-        $refreshToken = $this->systemConfigService->get(self::CONFIG_PREFIX . 'refreshToken');
-        if (!$refreshToken) {
-            $this->getNewAccessToken();
-            return;
-        }
-
-        $clientID = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
-        if (!$clientID) {
-            $this->logService->logError('Missing client ID in config');
-            throw new Exception('Missing client ID in config');
-        }
-
-        $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
-        if (!$clientSecret) {
-            $this->logService->logError('Missing client secret in config');
-            throw new Exception('Missing client secret in config');
-        }
-
         // Refresh access token from EasyTranslate
-        $uri = $this->apiUri . 'oauth/token';
+        $uri = $this->clientConfig->getApiUri() . 'oauth/token';
 
         $options = [
             'headers' => [
                 'Accept' => 'application/json',
             ],
             'form_params' => [
-                'client_id' => $clientID,
-                'client_secret' => $clientSecret,
+                'client_id' => $this->clientConfig->getClientId(),
+                'client_secret' => $this->clientConfig->getClientSecret(),
                 'grant_type' => 'refresh_token',
-                'refresh_token' => $refreshToken,
+                'refresh_token' => $this->clientConfig->getRefreshToken(),
                 'scope' => 'dashboard',
             ],
         ];
@@ -220,7 +191,7 @@ class APIHelperService
             );
             // Refresh token might be wrong, try to get
             // new access in the original way
-            if ($e->getCode() == 401) {
+            if ($e->getCode() === 401) {
                 $this->getNewAccessToken();
             } else {
                 throw $e;
@@ -239,7 +210,7 @@ class APIHelperService
      * @throws GuzzleException
      * @throws Throwable
      */
-    private function retryOnceWrapper(Closure $fun)
+    protected function retryOnceWrapper(Closure $fun)
     {
         $counter = 0;
 
@@ -247,11 +218,8 @@ class APIHelperService
             try {
                 return $fun();
             } catch (GuzzleException $e) {
-                if ($counter == 0) {
-                    if ($e->getCode() == 401) {
-                        $counter++;
-                        $this->refreshAccessToken();
-                    } elseif ($e->getCode() == 404) {
+                if ($counter === 0) {
+                    if ($e->getCode() === 404) {
                         $counter++;
                         $this->getTeamIdentifier();
                     } else {
@@ -270,16 +238,17 @@ class APIHelperService
      * @return void
      * @throws GuzzleException
      * @throws Exception
+     * @throws Throwable
      */
     public function getTeamIdentifier(): void
     {
-        $uri = $this->apiUri . 'api/v1/user';
+        $uri = $this->clientConfig->getApiUri() . 'api/v1/user';
 
         try {
             $this->retryOnceWrapper(function () use ($uri) {
                 $options = [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json'
                     ],
                 ];
@@ -287,8 +256,11 @@ class APIHelperService
                 $response = $this->client->request('GET', $uri, $options);
                 $body = json_decode($response->getBody()->getContents(), true);
 
-                $this->teamIdentifier = $body['included'][0]['attributes']['team_identifier'];
-                $this->systemConfigService->set(self::CONFIG_PREFIX . 'teamIdentifier', $this->teamIdentifier);
+                $this->clientConfig->setTeamId($body['included'][0]['attributes']['team_identifier']);
+                $this->systemConfigService->set(
+                    self::CONFIG_PREFIX . 'teamIdentifier',
+                    $this->clientConfig->getTeamId()
+                );
             });
         } catch (Exception $e) {
             $this->logService->logError(
@@ -309,16 +281,17 @@ class APIHelperService
      * @return array
      * @throws GuzzleException
      * @throws Exception
+     * @throws Throwable
      */
     public function getApiSettings(): array
     {
-        $uri = $this->apiUri . "api/v1/settings";
+        $uri = $this->clientConfig->getApiUri() . "api/v1/settings";
 
         try {
             return $this->retryOnceWrapper(function () use ($uri) {
                 $options = [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json',
                     ],
                 ];
@@ -348,13 +321,13 @@ class APIHelperService
      */
     public function getTeamDetails(): array
     {
-        $uri = $this->apiUri . "api/v2/teams/" . $this->teamIdentifier;
+        $uri = $this->clientConfig->getApiUri() . "api/v2/teams/" . $this->clientConfig->getTeamId();
 
         try {
             return $this->retryOnceWrapper(function () use ($uri) {
                 $options = [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json',
                     ],
                 ];
@@ -382,16 +355,17 @@ class APIHelperService
      * @return array
      * @throws GuzzleException
      * @throws Exception
+     * @throws Throwable
      */
     public function createNewProject(array $data): array
     {
-        $uri = $this->apiUri . "api/v2/teams/$this->teamIdentifier/projects";
+        $uri = $this->clientConfig->getApiUri() . "api/v2/teams/" . $this->clientConfig->getTeamId() . "/projects";
 
         try {
             return $this->retryOnceWrapper(function () use ($uri, $data) {
                 $options = [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json',
                     ],
                     'json' => ['data' => $data]
@@ -423,10 +397,12 @@ class APIHelperService
      * @return array
      * @throws GuzzleException
      * @throws Exception
+     * @throws Throwable
      */
     public function handlePriceApproval(string $projectId, bool $approve = false): array
     {
-        $uri = $this->apiUri . "api/v1/teams/$this->teamIdentifier/projects/$projectId/";
+        $uri = $this->clientConfig->getApiUri()
+            . "api/v2/teams/" . $this->clientConfig->getTeamId() . "/projects/$projectId/";
 
         if ($approve) {
             $uri .= 'accept-price';
@@ -438,7 +414,7 @@ class APIHelperService
             return $this->retryOnceWrapper(function () use ($uri) {
                 $options = [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json',
                     ],
                 ];
@@ -466,6 +442,7 @@ class APIHelperService
      * @return array
      * @throws GuzzleException
      * @throws Exception
+     * @throws Throwable
      */
     public function downloadTaskContent(string $taskURI): array
     {
@@ -473,7 +450,7 @@ class APIHelperService
             return $this->retryOnceWrapper(function () use ($taskURI) {
                 $options =  [
                     'headers' => [
-                        'Authorization' => 'Bearer ' . $this->accessToken,
+                        'Authorization' => 'Bearer ' . $this->clientConfig->getAccessToken(),
                         'Accept' => 'application/json',
                     ]
                 ];
@@ -491,6 +468,103 @@ class APIHelperService
                 ]
             );
             throw $e;
+        }
+    }
+
+    /**
+     * Ensures the client is ready and configured to call EasyTranslate API
+     *
+     * @return void
+     * @throws GuzzleException
+     * @throws Exception|Throwable
+     */
+    protected function ensureClientConfig(): void
+    {
+        // API URI
+        if (empty($this->clientConfig->getApiUri())) {
+            $apiUri = $this->systemConfigService->get(self::CONFIG_PREFIX . 'apiUri');
+            if (empty($apiUri)) {
+                $this->logService->logError('Missing API URI in config');
+                throw new Exception('Missing API URI in config');
+            } else {
+                $this->clientConfig->setApiUri($apiUri);
+            }
+        }
+
+        // Client ID
+        if (empty($this->clientConfig->getClientId())) {
+            $clientId = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientId');
+            if (empty($clientId)) {
+                $this->logService->logError('Missing client ID in config');
+                throw new Exception('Missing client ID in config');
+            } else {
+                $this->clientConfig->setClientId($clientId);
+            }
+        }
+
+        // Client Secret
+        if (empty($this->clientConfig->getClientSecret())) {
+            $clientSecret = $this->systemConfigService->get(self::CONFIG_PREFIX . 'clientSecret');
+            if (!$clientSecret) {
+                $this->logService->logError('Missing client secret in config');
+                throw new Exception('Missing client secret in config');
+            } else {
+                $this->clientConfig->setClientSecret($clientSecret);
+            }
+        }
+
+        // Username
+        if (empty($this->clientConfig->getUsername())) {
+            $username = $this->systemConfigService->get(self::CONFIG_PREFIX . 'username');
+            if (!$username) {
+                $this->logService->logError('Missing username in config');
+                throw new Exception('Missing username in config');
+            } else {
+                $this->clientConfig->setUsername($username);
+            }
+        }
+
+        // Password
+        if (empty($this->clientConfig->getPassword())) {
+            $password = $this->systemConfigService->get(self::CONFIG_PREFIX . 'password');
+            if (!$password) {
+                $this->logService->logError('Missing password in config');
+                throw new Exception('Missing password in config');
+            } else {
+                $this->clientConfig->setPassword($password);
+            }
+        }
+
+        // Access Token (JWT)
+        if (empty($this->clientConfig->getAccessToken())) {
+            $accessToken = $this->systemConfigService->get(self::CONFIG_PREFIX . 'accessToken');
+            if (empty($accessToken)) {
+                $this->getNewAccessToken();
+            } else {
+                $this->clientConfig->setAccessToken($accessToken);
+            }
+        }
+
+        // Refresh Token (JWT)
+        if (empty($this->clientConfig->getRefreshToken())) {
+            $refreshToken = $this->systemConfigService->get(self::CONFIG_PREFIX . 'refreshToken');
+            if (empty($refreshToken)) {
+                $this->getNewAccessToken();
+            } else {
+                $this->clientConfig->setRefreshToken($refreshToken);
+            }
+        }
+
+        $this->refreshTokenIfExpired();
+
+        // Team Identifier
+        if (empty($this->clientConfig->getTeamId())) {
+            $teamId = $this->systemConfigService->get(self::CONFIG_PREFIX . 'teamIdentifier');
+            if (empty($teamId)) {
+                $this->getTeamIdentifier();
+            } else {
+                $this->clientConfig->setTeamId($teamId);
+            }
         }
     }
 }

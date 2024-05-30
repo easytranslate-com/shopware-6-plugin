@@ -24,17 +24,17 @@ use Wexo\EasyTranslate\WexoEasyTranslate;
  *
  * @package   Wexo\EasyTranslate\Controller
  *
- * @RouteScope(scopes={"store-api"})
+ * @Route(defaults={"_routeScope"={"store-api"}})
  */
 class EasyTranslateProjectStorefrontController extends AbstractController
 {
-    private EntityRepositoryInterface $easyTranslateProjectRepository;
-    private EntityRepositoryInterface $easyTranslateTaskRepository;
-    private EntityRepositoryInterface $categoryTranslationRepository;
-    private EntityRepositoryInterface $productTranslationRepository;
-    private APIHelperService $APIHelperService;
-    private TranslationHelperService $translationHelperService;
-    private LogService $logService;
+    protected EntityRepositoryInterface $easyTranslateProjectRepository;
+    protected EntityRepositoryInterface $easyTranslateTaskRepository;
+    protected EntityRepositoryInterface $categoryTranslationRepository;
+    protected EntityRepositoryInterface $productTranslationRepository;
+    protected APIHelperService $APIHelperService;
+    protected TranslationHelperService $translationHelperService;
+    protected LogService $logService;
 
     /**
      * @param EntityRepositoryInterface $easyTranslateProjectRepository
@@ -160,24 +160,8 @@ class EasyTranslateProjectStorefrontController extends AbstractController
         $targetContentURL = $data['attributes']['target_content'];
         $content = $this->APIHelperService->downloadTaskContent($targetContentURL);
 
-        if (array_key_exists('categories', $content)) {
-            $categoriesUpdateArray = $this->translationHelperService->makeTranslationUpdateArray(
-                'category',
-                $content['categories'],
-                $task->getTargetLanguageId()
-            );
-            $this->categoryTranslationRepository->upsert($categoriesUpdateArray, Context::createDefaultContext());
-        }
-
-        if (array_key_exists('products', $content)) {
-            $productsUpdateArray = $this->translationHelperService->makeTranslationUpdateArray(
-                'product',
-                $content['products'],
-                $task->getTargetLanguageId()
-            );
-
-            $this->productTranslationRepository->upsert($productsUpdateArray, Context::createDefaultContext());
-        }
+        $this->upsertCategories($content, $task);
+        $this->upsertProducts($content, $task);
 
         $this->easyTranslateTaskRepository->update([
             [
@@ -355,6 +339,31 @@ class EasyTranslateProjectStorefrontController extends AbstractController
                 );
             default:
                 return new Response("Unrecognized event `$event`", 400);
+        }
+    }
+
+    public function upsertCategories($content, $task)
+    {
+        if (array_key_exists('categories', $content)) {
+            $categoriesUpdateArray = $this->translationHelperService->makeTranslationUpdateArray(
+                'category',
+                $content['categories'],
+                $task->getTargetLanguageId()
+            );
+            $this->categoryTranslationRepository->upsert($categoriesUpdateArray, Context::createDefaultContext());
+        }
+    }
+
+    public function upsertProducts($content, $task)
+    {
+        if (array_key_exists('products', $content)) {
+            $productsUpdateArray = $this->translationHelperService->makeTranslationUpdateArray(
+                'product',
+                $content['products'],
+                $task->getTargetLanguageId()
+            );
+
+            $this->productTranslationRepository->upsert($productsUpdateArray, Context::createDefaultContext());
         }
     }
 }

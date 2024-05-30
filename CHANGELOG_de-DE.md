@@ -1,3 +1,15 @@
+# 1.2.3
+
+* Bessere Logik für Autorisierung und JWT-Token, nur aktualisieren, wenn ungültig und so. Außerdem wurde die EasyTranslateClientConfig-Klasse eingeführt, um die gesamte Einrichtung der Clientkonfiguration zu handhaben.
+
+# 1.2.2
+
+* EasyTranslate ist jetzt einfacher zu überschreiben
+
+# 1.2.1
+
+* Alle Produkte des Vertriebskanals stehen jetzt zur Übersetzung zur Verfügung
+
 # 1.2.0
 
 * Workflows werden jetzt von der EasyTranslate-API abgerufen, sodass mehr als die 3 Standard-Workflows verwendet werden können 
