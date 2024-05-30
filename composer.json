@@ -17,7 +17,7 @@
     },
     "require": {
         "php": "^7.4 || ^8.0",
-        "shopware/core": "~6.6.0",
+        "shopware/core": "~6.4.0|~6.5.0|~6.6.0",
         "ext-json": "*"
     },
     "extra": {
